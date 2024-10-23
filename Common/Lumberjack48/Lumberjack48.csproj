@@ -7,8 +7,8 @@
     <ProjectGuid>{D9213D1C-E584-4DC9-B201-0DFE51959250}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LoggingLib48</RootNamespace>
-    <AssemblyName>LoggingLib48</AssemblyName>
+    <RootNamespace>Lumberjack48</RootNamespace>
+    <AssemblyName>Lumberjack48</AssemblyName>
     <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
