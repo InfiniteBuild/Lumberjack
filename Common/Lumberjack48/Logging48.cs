@@ -1,21 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace LoggingLibInterface
+namespace Lumberjack.Interface
 {
-    public class Feedback
+    public class Logging48
     {
-        private static Feedback m_instance;
+        private static Logging48 m_instance;
 
-        public static Feedback Instance 
+        public static Logging48 Instance 
         {
             get 
             {
                 if (m_instance == null) 
-                    m_instance = new Feedback();
+                    m_instance = new Logging48();
 
                 return m_instance;
             }
@@ -23,7 +19,7 @@ namespace LoggingLibInterface
 
         private List<ILoggingChannel> m_loggingChannels = new List<ILoggingChannel>();
 
-        protected Feedback()
+        protected Logging48()
         {
 
         }

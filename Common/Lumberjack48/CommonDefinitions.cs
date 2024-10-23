@@ -1,7 +1,7 @@
 ﻿
 using System;
 
-namespace LoggingLibInterface
+namespace Lumberjack.Interface
 {
     [Flags]
     public enum LogLevel

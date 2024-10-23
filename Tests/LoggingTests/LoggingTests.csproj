@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\LoggingLibInterface\LoggingLibInterface.csproj" />
+    <ProjectReference Include="..\..\Common\LumberjackLib\LumberjackLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>

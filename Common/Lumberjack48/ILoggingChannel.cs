@@ -1,4 +1,4 @@
-﻿namespace LoggingLibInterface
+﻿namespace Lumberjack.Interface
 {
     public interface ILoggingChannel
     {

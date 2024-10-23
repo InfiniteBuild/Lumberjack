@@ -2,9 +2,9 @@
 using System;
 using System.IO;
 
-namespace LoggingLibInterface
+namespace Lumberjack.Interface
 {
-    public class LogChannelFile : ILoggingChannel
+    public class LogChannelFile : ILoggingChannel, IDisposable
     {
         private string m_fileName;
         private StreamWriter m_writer;
@@ -107,5 +107,9 @@ namespace LoggingLibInterface
             }
         }
 
+        public void Dispose()
+        {
+            Close();
+        }
     }
 }

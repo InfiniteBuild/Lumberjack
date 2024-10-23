@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9CF861FE-F884-4A9E-B02E-EBF70B8326B6}</ProjectGuid>
+    <ProjectGuid>{D9213D1C-E584-4DC9-B201-0DFE51959250}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LoggingLib48</RootNamespace>
@@ -42,7 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonDefinitions.cs" />
-    <Compile Include="Lumberjack48.cs" />
+    <Compile Include="Logging48.cs" />
     <Compile Include="ILoggingChannel.cs" />
     <Compile Include="LogChannelConsole.cs" />
     <Compile Include="LogChannelFile.cs" />
