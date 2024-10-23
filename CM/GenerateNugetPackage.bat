@@ -22,7 +22,7 @@ echo ^<id^>Lumberjack^</id^> >> %nugetDir%\interface.nuspec
 echo ^<version^>%version%^</version^> >> %nugetDir%\interface.nuspec
 echo ^<description^>A library to support general logging^</description^> >> %nugetDir%\interface.nuspec
 echo ^<authors^>Jared Shipley^</authors^> >> %nugetDir%\interface.nuspec
-REM echo ^<repository type="git" url="https://code.siemens.com/tia-integration-tools/usertools/msbuildanalyser.git" /^> >> %nuspecFile%
+echo ^<repository type="git" url="https://github.com/OrgShipjd2001/Lumberjack.git" /^> >> %nuspecFile%
 echo ^</metadata^> >> %nugetDir%\interface.nuspec
 echo ^<files^> >> %nugetDir%\interface.nuspec
 
