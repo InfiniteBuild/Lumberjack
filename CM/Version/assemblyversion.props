@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
-    <Company>Skunkworks</Company>
-    <Product>LoggingLib</Product>
+    <Company>shipjd2001</Company>
+    <Product>Lumberjack</Product>
     <Version>0.0.1.0</Version>
     <FileVersion>0.0.1.0</FileVersion>
   </PropertyGroup>
