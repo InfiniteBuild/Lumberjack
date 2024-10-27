@@ -28,8 +28,8 @@ echo ^<repository type="git" url="https://github.com/OrgShipjd2001/Lumberjack.gi
 echo ^<readme^>docs\README.md^</readme^> >> %nugetDir%\interface.nuspec
 echo ^<license type="file"^>LICENSE.txt^</license^>  >> %nugetDir%\interface.nuspec
 echo ^<dependencies^> >> %nugetDir%\interface.nuspec
-echo ^<group targetFramework=".NETFramework4.8" /^> >> %nugetDir%\interface.nuspec
-echo ^<group targetFramework=".NET8.0" /^> >> %nugetDir%\interface.nuspec
+echo ^<group targetFramework="net48" /^> >> %nugetDir%\interface.nuspec
+echo ^<group targetFramework="net8.0" /^> >> %nugetDir%\interface.nuspec
 echo ^</dependencies^> >> %nugetDir%\interface.nuspec
 echo ^</metadata^> >> %nugetDir%\interface.nuspec
 echo ^<files^> >> %nugetDir%\interface.nuspec
