@@ -1,5 +1,6 @@
 @echo off
 
+set prerelese=-alpha
 set scriptDir=%~dp0
 set rootDir=%scriptDir%..
 set publishDir=%rootDir%\Publish
@@ -21,7 +22,7 @@ echo ^<?xml version="1.0" encoding="utf-8"?^> >> %nugetDir%\interface.nuspec
 echo ^<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd"^> >> %nugetDir%\interface.nuspec
 echo ^<metadata^> >> %nugetDir%\interface.nuspec
 echo ^<id^>Lumberjack^</id^> >> %nugetDir%\interface.nuspec
-echo ^<version^>%version%^</version^> >> %nugetDir%\interface.nuspec
+echo ^<version^>%version%%prerelese%^</version^> >> %nugetDir%\interface.nuspec
 echo ^<description^>A CSharp library to support basic application logging^</description^> >> %nugetDir%\interface.nuspec
 echo ^<authors^>Jared Shipley^</authors^> >> %nugetDir%\interface.nuspec
 echo ^<repository type="git" url="https://github.com/OrgShipjd2001/Lumberjack.git" /^> >> %nugetDir%\interface.nuspec
