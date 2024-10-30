@@ -36,9 +36,7 @@ echo ^</metadata^> >> %nugetDir%\interface.nuspec
 echo ^<files^> >> %nugetDir%\interface.nuspec
 
 echo ^<file src="%targetDir%\Lumberjack\**" target="lib\net8.0"/^> >> %nugetDir%\interface.nuspec
-echo ^<file src="%targetDir%\Lumberjack\**" target="content\net8.0"/^> >> %nugetDir%\interface.nuspec
 echo ^<file src="%targetDir%\Lumberjack48\**" target="lib\net48"/^> >> %nugetDir%\interface.nuspec
-echo ^<file src="%targetDir%\Lumberjack48\**" target="content\net48"/^> >> %nugetDir%\interface.nuspec
 REM echo ^<file src="%rootDir%\CM\Nuget\Lumberjack.targets" target="build"/^> >> %nugetDir%\interface.nuspec
 echo ^<file src="%rootDir%\README.md" target="docs\" /^> >> %nugetDir%\interface.nuspec
 echo ^<file src="%nugetdir%\LICENSE.txt" target="" /^> >> %nugetDir%\interface.nuspec
