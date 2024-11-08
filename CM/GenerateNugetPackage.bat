@@ -28,6 +28,7 @@ echo ^<authors^>Jared Shipley^</authors^> >> %nugetDir%\interface.nuspec
 echo ^<repository type="git" url="https://github.com/OrgShipjd2001/Lumberjack.git" /^> >> %nugetDir%\interface.nuspec
 echo ^<readme^>docs\README.md^</readme^> >> %nugetDir%\interface.nuspec
 echo ^<license type="file"^>LICENSE.txt^</license^>  >> %nugetDir%\interface.nuspec
+echo ^<icon^>images/Lumberjack.png^</icon^> >> %nugetDir%\interface.nuspec
 echo ^<dependencies^> >> %nugetDir%\interface.nuspec
 echo ^<group targetFramework="net48" /^> >> %nugetDir%\interface.nuspec
 echo ^<group targetFramework="net8.0" /^> >> %nugetDir%\interface.nuspec
@@ -40,6 +41,7 @@ echo ^<file src="%targetDir%\Lumberjack48\**" target="lib\net48"/^> >> %nugetDir
 REM echo ^<file src="%rootDir%\CM\Nuget\Lumberjack.targets" target="build"/^> >> %nugetDir%\interface.nuspec
 echo ^<file src="%rootDir%\README.md" target="docs\" /^> >> %nugetDir%\interface.nuspec
 echo ^<file src="%nugetdir%\LICENSE.txt" target="" /^> >> %nugetDir%\interface.nuspec
+echo ^<file src="%rootdir%\Resources\Lumberjack.png" target="images\" /^> >> %nugetDir%\interface.nuspec
 
 echo ^</files^> >> %nugetDir%\interface.nuspec
 echo ^</package^> >> %nugetDir%\interface.nuspec
