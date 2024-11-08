@@ -50,7 +50,7 @@ echo ^</package^> >> %nugetDir%\interface.nuspec
 echo Generate Nuget package
 %nugetexe% pack %nugetDir%\interface.nuspec -OutputDirectory %nugetDir%
 
-%nugetexe% source |find "dev"
+%nugetexe% source |find "dev [Enabled]"
 if "%ERRORLEVEL%"=="0" %nugetexe% push %nugetDir%\*.nupkg -Source Dev
 
 :Done
