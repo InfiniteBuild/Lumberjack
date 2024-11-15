@@ -10,7 +10,7 @@ namespace Lumberjack.Interface
 
         public LogDisplayFlags DisplayFlags { get; set; } = LogDisplayFlags.ShowTimestamp | LogDisplayFlags.ShowLevel;
 
-        public LogLevel LevelFilter { get; set; } = LogLevel.UserInfo | LogLevel.Info | LogLevel.Warning | LogLevel.Error;
+        public LogLevel LevelFilter { get; set; } = LogLevel.All;
 
         public LogChannelFile(string fileName, int backupCount = 5)
         {

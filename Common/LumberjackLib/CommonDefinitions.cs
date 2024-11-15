@@ -4,9 +4,10 @@ namespace Lumberjack.Interface
     [Flags]
     public enum LogLevel
     {
-        UserInfo,
-        Info,
-        Warning,
-        Error
+        All = 0xFFFF,
+        UserInfo = 1,
+        Info = 2,
+        Warning = 4,
+        Error = 8
     }
 }

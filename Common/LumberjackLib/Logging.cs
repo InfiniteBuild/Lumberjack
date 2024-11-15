@@ -80,7 +80,7 @@
 
         }
 
-        public static void CreateLogFile(string filepath, LogLevel filter = LogLevel.UserInfo)
+        public static void CreateLogFile(string filepath, LogLevel filter = LogLevel.All)
         {
             Instance.RegisterChannel(new LogChannelFile(filepath, filter));
         }
