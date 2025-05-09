@@ -38,9 +38,14 @@
 
         public void LogMessage(LogLevel level, string message)
         {
+            LogMessage(level, message, string.Empty);
+        }
+
+        public void LogMessage(LogLevel level, string message, string component)
+        {
             foreach (ILoggingChannel channel in m_loggingChannels)
             {
-                channel.LogMessage(level, message);
+                channel.LogMessage(level, message, component);
             }
         }
 
@@ -56,22 +61,42 @@
 
         public static void LogUserMessage(string message)
         {
-            Instance.LogMessage(LogLevel.UserInfo, message);
+            LogUserMessage(message, string.Empty);
+        }
+
+        public static void LogUserMessage(string message, string component)
+        {
+            Instance.LogMessage(LogLevel.UserInfo, message, component);
         }
 
         public static void LogInfo(string message)
         {
-            Instance.LogMessage(LogLevel.Info, message);
+            LogInfo(message, string.Empty);
+        }
+
+        public static void LogInfo(string message, string component)
+        {
+            Instance.LogMessage(LogLevel.Info, message, component);
         }
 
         public static void LogWarning(string message)
         {
-            Instance.LogMessage(LogLevel.Warning, message);
+            LogWarning(message, string.Empty);
+        }
+
+        public static void LogWarning(string message, string component)
+        {
+            Instance.LogMessage(LogLevel.Warning, message, component);
         }
 
         public static void LogError(string message)
         {
-            Instance.LogMessage(LogLevel.Error, message);
+            LogError(message, string.Empty);
+        }
+
+        public static void LogError(string message, string component)
+        {
+            Instance.LogMessage(LogLevel.Error, message, component);
         }
 
         public static void Close()
@@ -80,14 +105,27 @@
 
         }
 
-        public static void CreateLogFile(string filepath, LogLevel filter = LogLevel.All)
+        public static ILoggingChannel CreateLogFile(string filepath, LogLevel filter = LogLevel.All)
         {
-            Instance.RegisterChannel(new LogChannelFile(filepath, filter));
+            return CreateLogFile(filepath, string.Empty, filter);
         }
 
-        public static void CreateConsoleLog(LogLevel filter = LogLevel.UserInfo)
+        public static ILoggingChannel CreateLogFile(string filepath, string component, LogLevel filter = LogLevel.All)
         {
-            Instance.RegisterChannel(new LogChannelConsole(filter));
+            LogChannelFile logChannel = new LogChannelFile(filepath, filter);
+            logChannel.ComponentFilter = component;
+
+            Instance.RegisterChannel(logChannel);
+            return logChannel;
         }
+
+        public static ILoggingChannel CreateConsoleLog(LogLevel filter = LogLevel.UserInfo)
+        {
+            LogChannelConsole logChannel = new LogChannelConsole(filter);
+            Instance.RegisterChannel(logChannel);
+
+            return logChannel;
+        }
+
     }
 }

@@ -12,6 +12,8 @@ namespace Lumberjack.Interface
 
         public LogLevel LevelFilter { get; set; } = LogLevel.All;
 
+        public string ComponentFilter { get; set; } = string.Empty;
+
         public LogChannelFile(string fileName, int backupCount = 5)
         {
             m_backupCount = backupCount;
@@ -54,8 +56,22 @@ namespace Lumberjack.Interface
 
         public void LogMessage(LogLevel level, string message)
         {
+            LogMessage(level, message, string.Empty);
+        }
+
+        public void LogMessage(LogLevel level, string message, string component)
+        {
             CheckLogSwitchNeeded();
 
+            if (!string.IsNullOrWhiteSpace(ComponentFilter))
+            {
+                if (string.IsNullOrWhiteSpace(component))
+                    return;
+
+                if (!component.Contains(ComponentFilter, StringComparison.InvariantCultureIgnoreCase))
+                    return;
+            }
+            
             if (LevelFilter.HasFlag(level))
             {
                 string outputText = string.Empty;
