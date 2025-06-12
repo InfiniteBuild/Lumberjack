@@ -105,14 +105,14 @@
 
         }
 
-        public static ILoggingChannel CreateLogFile(string filepath, LogLevel filter = LogLevel.All)
+        public static ILoggingChannel CreateLogFile(string filepath, bool reset = false, LogLevel filter = LogLevel.All)
         {
-            return CreateLogFile(filepath, string.Empty, filter);
+            return CreateLogFile(filepath, string.Empty, reset, filter);
         }
 
-        public static ILoggingChannel CreateLogFile(string filepath, string component, LogLevel filter = LogLevel.All)
+        public static ILoggingChannel CreateLogFile(string filepath, string component, bool reset = false, LogLevel filter = LogLevel.All)
         {
-            LogChannelFile logChannel = new LogChannelFile(filepath, filter);
+            LogChannelFile logChannel = new LogChannelFile(filepath, reset, filter);
             logChannel.ComponentFilter = component;
 
             Instance.RegisterChannel(logChannel);

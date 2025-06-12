@@ -47,7 +47,7 @@ namespace LoggingTests
 #pragma warning disable CS8604 // Possible null reference argument.
             string logfilePath = Path.Combine(m_logDir, "test.log");
 #pragma warning restore CS8604 // Possible null reference argument.
-            m_logChannelFile = new LogChannelFile(logfilePath);
+            m_logChannelFile = new LogChannelFile(logfilePath, false);
             Logging.Instance.RegisterChannel(m_logChannelFile);
 
             Logging.LogUserMessage("This is a user message");
@@ -70,7 +70,7 @@ namespace LoggingTests
             File.Create(logfilePath + ".1").Close();
             File.Create(logfilePath + ".2").Close();
 
-            m_logChannelFile = new LogChannelFile(logfilePath, 2);
+            m_logChannelFile = new LogChannelFile(logfilePath, false, 2);
             Logging.Instance.RegisterChannel(m_logChannelFile);
 
             Logging.LogUserMessage("This is a user message");

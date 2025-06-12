@@ -6,12 +6,11 @@ namespace Lumberjack.Interface
     public class LogChannelFile : ILoggingChannel, IDisposable
     {
         private string m_fileName;
-        private StreamWriter m_writer;
-        private int m_backupCount;
-        private bool m_forceLogSwitch = false;  
+        private StreamWriter? m_writer;
+        private int m_backupCount = 5;
 
         private ConcurrentQueue<LogEntry> m_logQueue = new ConcurrentQueue<LogEntry>();
-        private Thread m_logThread;
+        private Thread? m_logThread;
         private ManualResetEvent m_stopEvent = new ManualResetEvent(false);
 
         public LogDisplayFlags DisplayFlags { get; set; } = LogDisplayFlags.ShowTimestamp | LogDisplayFlags.ShowLevel;
@@ -20,22 +19,23 @@ namespace Lumberjack.Interface
 
         public string ComponentFilter { get; set; } = string.Empty;
 
-        public LogChannelFile(string fileName, int backupCount = 5)
+        public LogChannelFile(string fileName, bool reset, int backupCount = 5)
         {
             m_backupCount = backupCount;
             m_fileName = fileName;
 
-            CheckLogSwitchNeeded();
+            if (!reset)
+                CheckLogSwitchNeeded();
 
-            Open();
+            Open(reset);
         }
 
-        public LogChannelFile(string fileName, LogLevel filter, int backupCount = 5) : this(fileName, backupCount)
+        public LogChannelFile(string fileName, bool reset, LogLevel filter, int backupCount = 5) : this(fileName, reset, backupCount)
         {
             LevelFilter = filter;
         }
 
-        public LogChannelFile(string fileName, LogLevel filter, LogDisplayFlags displayFlags, int backupCount = 5) : this(fileName, filter, backupCount)
+        public LogChannelFile(string fileName, bool reset, LogLevel filter, LogDisplayFlags displayFlags, int backupCount = 5) : this(fileName, reset, filter, backupCount)
         {
             DisplayFlags = displayFlags;
         }
@@ -135,9 +135,11 @@ namespace Lumberjack.Interface
 
         public void Open(bool resetLog = false)
         {
-            m_stopEvent.Reset();
+            if ((m_logThread != null) || (m_writer != null))
+                Close();
 
-            m_forceLogSwitch = resetLog;
+            if (resetLog)
+                BackupFiles();
 
             if (m_writer == null)
             {
@@ -150,6 +152,7 @@ namespace Lumberjack.Interface
                 File.SetCreationTime(m_fileName, DateTimeOffset.Now.LocalDateTime);
             }
 
+            m_stopEvent.Reset();
             m_logThread = new Thread(LogProcessor);
             m_logThread.Name = "LogChannelFileProcessor";
             m_logThread.IsBackground = true;
@@ -158,14 +161,15 @@ namespace Lumberjack.Interface
 
         protected void CheckLogSwitchNeeded()
         {
-            DateTime creation = File.GetCreationTime(m_fileName);
-            if ((creation.DayOfYear != DateTimeOffset.Now.DayOfYear) || (m_forceLogSwitch))
+            if (File.Exists(m_fileName))
             {
-                Close();
-                BackupFiles();
-                Open();
-
-                m_forceLogSwitch = false;
+                DateTime creation = File.GetCreationTime(m_fileName);
+                if (creation.DayOfYear != DateTimeOffset.Now.DayOfYear)
+                {
+                    Close();
+                    BackupFiles();
+                    Open();
+                }
             }
         }
 
