@@ -8,5 +8,6 @@
         void LogMessage(LogLevel level, string message);
         void LogMessage(LogLevel level, string message, string component);
         void Close();
+        void Open(bool resetLog = false);
     }
 }

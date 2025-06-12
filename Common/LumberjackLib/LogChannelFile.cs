@@ -1,4 +1,6 @@
 ﻿
+using System.Collections.Concurrent;
+
 namespace Lumberjack.Interface
 {
     public class LogChannelFile : ILoggingChannel, IDisposable
@@ -6,7 +8,11 @@ namespace Lumberjack.Interface
         private string m_fileName;
         private StreamWriter m_writer;
         private int m_backupCount;
-        private System.Timers.Timer m_timer;
+        private bool m_forceLogSwitch = false;  
+
+        private ConcurrentQueue<LogEntry> m_logQueue = new ConcurrentQueue<LogEntry>();
+        private Thread m_logThread;
+        private ManualResetEvent m_stopEvent = new ManualResetEvent(false);
 
         public LogDisplayFlags DisplayFlags { get; set; } = LogDisplayFlags.ShowTimestamp | LogDisplayFlags.ShowLevel;
 
@@ -21,20 +27,7 @@ namespace Lumberjack.Interface
 
             CheckLogSwitchNeeded();
 
-            if (m_writer == null)
-            {
-                FileStreamOptions options = new FileStreamOptions();
-                options.Share = FileShare.ReadWrite;
-                options.Mode = FileMode.Append;
-                options.Access = FileAccess.Write;
-
-                m_writer = new StreamWriter(m_fileName, options);
-                File.SetCreationTime(m_fileName, DateTimeOffset.Now.LocalDateTime);
-            }
-
-            m_timer = new System.Timers.Timer(1000);
-            m_timer.AutoReset = false;
-            m_timer.Elapsed += M_timer_Elapsed;
+            Open();
         }
 
         public LogChannelFile(string fileName, LogLevel filter, int backupCount = 5) : this(fileName, backupCount)
@@ -47,13 +40,6 @@ namespace Lumberjack.Interface
             DisplayFlags = displayFlags;
         }
 
-        private void M_timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
-        {
-            m_timer.Stop();
-            if (m_writer != null)
-                m_writer.Flush();
-        }
-
         public void LogMessage(LogLevel level, string message)
         {
             LogMessage(level, message, string.Empty);
@@ -61,74 +47,125 @@ namespace Lumberjack.Interface
 
         public void LogMessage(LogLevel level, string message, string component)
         {
-            CheckLogSwitchNeeded();
+            LogEntry logEntry = new LogEntry(level, message, component);
+            m_logQueue.Enqueue(logEntry);
+        }
 
-            if (!string.IsNullOrWhiteSpace(ComponentFilter))
+        private void LogProcessor()
+        {
+            bool entryWritten = false;
+
+            while (m_stopEvent.WaitOne(0) == false)
             {
-                if (string.IsNullOrWhiteSpace(component))
-                    return;
-
-                if (!component.Contains(ComponentFilter, StringComparison.InvariantCultureIgnoreCase))
-                    return;
-            }
-            
-            if (LevelFilter.HasFlag(level))
-            {
-                string outputText = string.Empty;
-                if (DisplayFlags.HasFlag(LogDisplayFlags.ShowTimestamp))
+                if (m_logQueue.Count > 0)
                 {
-                    outputText += "[" + DateTimeOffset.Now.LocalDateTime.ToLongTimeString() + "] ";
-                }
+                    LogEntry? logEntry = null;
+                    if (m_logQueue.TryDequeue(out logEntry))
+                    {
+                        if (logEntry == null)
+                            continue;
 
-                if (DisplayFlags.HasFlag(LogDisplayFlags.ShowLevel))
-                {
-                    outputText += level.ToString() + ": ";
+                        CheckLogSwitchNeeded();
+
+                        if (!string.IsNullOrWhiteSpace(ComponentFilter))
+                        {
+                            if (string.IsNullOrWhiteSpace(logEntry.Component))
+                                return;
+
+                            if (!logEntry.Component.Contains(ComponentFilter, StringComparison.InvariantCultureIgnoreCase))
+                                return;
+                        }
+
+                        if (LevelFilter.HasFlag(logEntry.Level))
+                        {
+                            string outputText = string.Empty;
+                            if (DisplayFlags.HasFlag(LogDisplayFlags.ShowTimestamp))
+                            {
+                                outputText += "[" + DateTimeOffset.Now.LocalDateTime.ToLongTimeString() + "] ";
+                            }
+
+                            if (DisplayFlags.HasFlag(LogDisplayFlags.ShowLevel))
+                            {
+                                outputText += logEntry.Level.ToString() + ": ";
+                            }
+                            else
+                            {
+                                if (logEntry.Level == LogLevel.Error)
+                                    outputText += logEntry.Level.ToString() + ": ";
+                            }
+
+                            outputText += logEntry.Message;
+
+                            m_writer.WriteLine(outputText);
+
+                            entryWritten = true;
+                        }
+                    }
                 }
                 else
                 {
-                    if (level == LogLevel.Error)
-                        outputText += level.ToString() + ": ";
+                    Thread.Sleep(100); // Sleep for a short time to avoid busy waiting
                 }
 
-                outputText += message;
-
-                m_writer.WriteLine(outputText);
-
-                if (m_timer.Enabled)
-                    m_timer.Stop();
-
-                m_timer.Start();
+                if ((m_logQueue.Count == 0) && (entryWritten))
+                {
+                    entryWritten = false;
+                    m_writer.Flush();
+                }
             }
         }
 
         public void Close()
         {
-            if ((m_timer != null) && (m_timer.Enabled))
-                m_timer.Stop();
+            m_stopEvent.Set();
+
+            if (m_logThread != null)
+            {
+                m_logThread.Join();
+                m_logThread = null;
+            }
 
             if (m_writer != null)
             {
                 m_writer.Flush();
                 m_writer.Close();
+                m_writer = null;
             }
-            m_writer = null;
+        }
+
+        public void Open(bool resetLog = false)
+        {
+            m_stopEvent.Reset();
+
+            m_forceLogSwitch = resetLog;
+
+            if (m_writer == null)
+            {
+                FileStreamOptions options = new FileStreamOptions();
+                options.Share = FileShare.ReadWrite;
+                options.Mode = FileMode.Append;
+                options.Access = FileAccess.Write;
+
+                m_writer = new StreamWriter(m_fileName, options);
+                File.SetCreationTime(m_fileName, DateTimeOffset.Now.LocalDateTime);
+            }
+
+            m_logThread = new Thread(LogProcessor);
+            m_logThread.Name = "LogChannelFileProcessor";
+            m_logThread.IsBackground = true;
+            m_logThread.Start();
         }
 
         protected void CheckLogSwitchNeeded()
         {
             DateTime creation = File.GetCreationTime(m_fileName);
-            if (creation.DayOfYear != DateTimeOffset.Now.DayOfYear)
+            if ((creation.DayOfYear != DateTimeOffset.Now.DayOfYear) || (m_forceLogSwitch))
             {
                 Close();
                 BackupFiles();
+                Open();
 
-                FileStreamOptions options = new FileStreamOptions();
-                options.Share = FileShare.ReadWrite;
-                options.Mode = FileMode.CreateNew;
-                options.Access = FileAccess.Write;
-
-                m_writer = new StreamWriter(m_fileName, options);
-                File.SetCreationTime(m_fileName, DateTimeOffset.Now.LocalDateTime);
+                m_forceLogSwitch = false;
             }
         }
 

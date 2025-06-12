@@ -27,6 +27,11 @@
             
         }
 
+        public void Open(bool resetLog = false)
+        {
+            // No initialization needed for console logging
+        }
+
         public void LogMessage(LogLevel level, string message)
         {
             LogMessage(level, message, string.Empty);
