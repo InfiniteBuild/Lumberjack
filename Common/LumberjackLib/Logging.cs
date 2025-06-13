@@ -105,12 +105,22 @@
 
         }
 
-        public static ILoggingChannel CreateLogFile(string filepath, bool reset = false, LogLevel filter = LogLevel.All)
+        public static ILoggingChannel CreateLogFile(string filepath, bool reset = false)
+        {
+            return CreateLogFile(filepath, string.Empty, reset, LogLevel.All);
+        }
+
+        public static ILoggingChannel CreateLogFile(string filepath, string component, bool reset = false)
+        {
+            return CreateLogFile(filepath, component, reset, LogLevel.All);
+        }
+
+        public static ILoggingChannel CreateLogFile(string filepath, bool reset, LogLevel filter)
         {
             return CreateLogFile(filepath, string.Empty, reset, filter);
         }
 
-        public static ILoggingChannel CreateLogFile(string filepath, string component, bool reset = false, LogLevel filter = LogLevel.All)
+        public static ILoggingChannel CreateLogFile(string filepath, string component, bool reset, LogLevel filter)
         {
             LogChannelFile logChannel = new LogChannelFile(filepath, reset, filter);
             logChannel.ComponentFilter = component;
@@ -119,12 +129,17 @@
             return logChannel;
         }
 
-        public static ILoggingChannel CreateConsoleLog(LogLevel filter = LogLevel.UserInfo)
+        public static ILoggingChannel CreateConsoleLog()
+        {
+            return CreateConsoleLog(LogLevel.UserInfo, LogDisplayFlags.None);
+        }
+
+        public static ILoggingChannel CreateConsoleLog(LogLevel filter)
         {
             return CreateConsoleLog(filter, LogDisplayFlags.None);
         }
 
-        public static ILoggingChannel CreateConsoleLog(LogLevel filter = LogLevel.UserInfo, LogDisplayFlags displayFlags = LogDisplayFlags.None)
+        public static ILoggingChannel CreateConsoleLog(LogLevel filter, LogDisplayFlags displayFlags)
         {
             LogChannelConsole logChannel = new LogChannelConsole(filter, displayFlags);
             Instance.RegisterChannel(logChannel);
