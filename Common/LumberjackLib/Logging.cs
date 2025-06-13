@@ -121,11 +121,14 @@
 
         public static ILoggingChannel CreateConsoleLog(LogLevel filter = LogLevel.UserInfo)
         {
-            LogChannelConsole logChannel = new LogChannelConsole(filter);
-            Instance.RegisterChannel(logChannel);
-
-            return logChannel;
+            return CreateConsoleLog(filter, LogDisplayFlags.None);
         }
 
+        public static ILoggingChannel CreateConsoleLog(LogLevel filter = LogLevel.UserInfo, LogDisplayFlags displayFlags = LogDisplayFlags.None)
+        {
+            LogChannelConsole logChannel = new LogChannelConsole(filter, displayFlags);
+            Instance.RegisterChannel(logChannel);
+            return logChannel;
+        }
     }
 }
