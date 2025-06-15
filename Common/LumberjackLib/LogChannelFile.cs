@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Lumberjack.Interface
 {
@@ -10,8 +11,9 @@ namespace Lumberjack.Interface
         private int m_backupCount = 5;
 
         private ConcurrentQueue<LogEntry> m_logQueue = new ConcurrentQueue<LogEntry>();
-        private Thread? m_logThread;
-        private ManualResetEvent m_stopEvent = new ManualResetEvent(false);
+        private Task? m_processingTask = null;
+        private SemaphoreSlim m_newItemSignal = new SemaphoreSlim(0);
+        private CancellationTokenSource m_cancellationTokenSource = new CancellationTokenSource();
 
         public LogDisplayFlags DisplayFlags { get; set; } = LogDisplayFlags.ShowTimestamp | LogDisplayFlags.ShowLevel;
 
@@ -49,34 +51,38 @@ namespace Lumberjack.Interface
         {
             LogEntry logEntry = new LogEntry(level, message, component);
             m_logQueue.Enqueue(logEntry);
+            m_newItemSignal.Release();
         }
 
-        private void LogProcessor()
+        private async Task LogProcessor()
         {
-            bool entryWritten = false;
+            CancellationToken cancellationToken = m_cancellationTokenSource.Token;
 
-            while (m_stopEvent.WaitOne(0) == false)
+            try
             {
-                if (m_logQueue.Count > 0)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    LogEntry? logEntry = null;
-                    if (m_logQueue.TryDequeue(out logEntry))
-                    {
-                        if (logEntry == null)
-                            continue;
+                    await m_newItemSignal.WaitAsync(cancellationToken);
 
+                    while (m_logQueue.TryDequeue(out LogEntry? logEntry))
+                    {
                         CheckLogSwitchNeeded();
+
+                        bool writeEntry = true;
 
                         if (!string.IsNullOrWhiteSpace(ComponentFilter))
                         {
                             if (string.IsNullOrWhiteSpace(logEntry.Component))
-                                return;
+                                writeEntry = false;
 
                             if (!logEntry.Component.Contains(ComponentFilter, StringComparison.InvariantCultureIgnoreCase))
-                                return;
+                                writeEntry = false;
                         }
 
-                        if (LevelFilter.HasFlag(logEntry.Level))
+                        if (!LevelFilter.HasFlag(LogLevel.All) && !LevelFilter.HasFlag(logEntry.Level))
+                            writeEntry = false;
+
+                        if (writeEntry)
                         {
                             string outputText = string.Empty;
                             if (DisplayFlags.HasFlag(LogDisplayFlags.ShowTimestamp))
@@ -97,49 +103,62 @@ namespace Lumberjack.Interface
                             outputText += logEntry.Message;
 
                             m_writer.WriteLine(outputText);
-
-                            entryWritten = true;
                         }
                     }
-                }
-                else
-                {
-                    Thread.Sleep(100); // Sleep for a short time to avoid busy waiting
-                }
 
-                if ((m_logQueue.Count == 0) && (entryWritten))
-                {
-                    entryWritten = false;
                     m_writer.Flush();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"An error occurred in the log processor: {ex.Message}");
+            }
+            finally
+            {
+                Console.WriteLine("FileLog processor thread exiting.");
+                if (m_writer != null)
+                {
+                    m_writer.Flush();
+                    m_writer.Close();
+                    m_writer = null;
                 }
             }
         }
 
         public void Close()
         {
-            m_stopEvent.Set();
-
-            if (m_logThread != null)
+            if (m_processingTask == null)
             {
-                m_logThread.Join();
-                m_logThread = null;
+                Console.WriteLine("FileLog processor is not running, nothing to close.");
+                return;
             }
 
-            if (m_writer != null)
-            {
-                m_writer.Flush();
-                m_writer.Close();
-                m_writer = null;
-            }
+            m_cancellationTokenSource.Cancel();
+            m_newItemSignal.Release(); // Ensure we release the semaphore for any remaining items
+
+            m_processingTask.Wait();
         }
 
         public void Open(bool resetLog = false)
         {
-            if ((m_logThread != null) || (m_writer != null))
-                Close();
+            if ((m_processingTask != null) && !m_processingTask.IsCompleted)
+            {
+                if (resetLog)
+                {
+                    Console.WriteLine("Rest Logfile - close logging");
+                    Close();
+                }
+                else
+                {
+                    return;
+                }
+            }
 
             if (resetLog)
+            {
+                Console.WriteLine("Reset Logfile - backup old logfile and create new one");
                 BackupFiles();
+            }
 
             if (m_writer == null)
             {
@@ -152,11 +171,16 @@ namespace Lumberjack.Interface
                 File.SetCreationTime(m_fileName, DateTimeOffset.Now.LocalDateTime);
             }
 
-            m_stopEvent.Reset();
-            m_logThread = new Thread(LogProcessor);
-            m_logThread.Name = "LogChannelFileProcessor";
-            m_logThread.IsBackground = true;
-            m_logThread.Start();
+            Console.WriteLine("Starting FileLog processor...");
+
+            m_cancellationTokenSource = new CancellationTokenSource();
+            m_processingTask = Task.Factory.StartNew(
+            ()=> LogProcessor(),
+            m_cancellationTokenSource.Token,
+            TaskCreationOptions.LongRunning, // Crucial hint for dedicated thread-like behavior
+            TaskScheduler.Default).Unwrap();
+
+            Console.WriteLine("FileLog processor started: " + m_fileName);
         }
 
         protected void CheckLogSwitchNeeded()

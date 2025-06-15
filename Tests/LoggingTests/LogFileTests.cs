@@ -33,9 +33,10 @@ namespace LoggingTests
         [TearDown]
         public void TearDown()
         {
+            Logging.Close();
+
             if (m_logChannelFile != null)
             {
-                Logging.Instance.UnregisterChannel(m_logChannelFile);
                 m_logChannelFile.Dispose();
                 m_logChannelFile = null;
             }
@@ -44,27 +45,29 @@ namespace LoggingTests
         [Test]
         public void WriteLogFileMessages()
         {
-#pragma warning disable CS8604 // Possible null reference argument.
+            Assert.That(m_logDir, Is.Not.Null, "Log directory should not be null");
+
             string logfilePath = Path.Combine(m_logDir, "test.log");
-#pragma warning restore CS8604 // Possible null reference argument.
-            m_logChannelFile = new LogChannelFile(logfilePath, false);
-            Logging.Instance.RegisterChannel(m_logChannelFile);
+            Logging.CreateLogFile(logfilePath, false);
 
             Logging.LogUserMessage("This is a user message");
             Logging.LogInfo("This is an info message");
             Logging.LogWarning("This is a warning message");
             Logging.LogError("This is an error message");
 
-            m_logChannelFile.Close();
+            Logging.Close();
             Assert.That(File.Exists(logfilePath));
+
+            string[] lines = File.ReadAllLines(logfilePath, System.Text.Encoding.UTF8);
+            Assert.That(lines.Length, Is.GreaterThanOrEqualTo(4), "Expected at least 4 log entries in the file");
         }
 
         [Test]
         public void CheckFileBackup()
         {
-#pragma warning disable CS8604 // Possible null reference argument.
+            Assert.That(m_logDir, Is.Not.Null, "Log directory should not be null");
+
             string logfilePath = Path.Combine(m_logDir, "test.log");
-#pragma warning restore CS8604 // Possible null reference argument.
 
             File.Create(logfilePath).Close();
             File.Create(logfilePath + ".1").Close();
