@@ -24,7 +24,7 @@ echo ^<version^>%packVer%^</version^> >> %nuspecFile%
 echo ^<description^>A CSharp library to support basic application logging^</description^> >> %nuspecFile%
 echo ^<authors^>Jared Shipley^</authors^> >> %nuspecFile%
 echo ^<repository type="git" url="https://github.com/OrgShipjd2001/Lumberjack.git" /^> >> %nuspecFile%
-echo ^<readme^>docs\README.md^</readme^> >> %nuspecFile%
+echo ^<readme^>docs\ReadMe.md^</readme^> >> %nuspecFile%
 echo ^<license type="file"^>License.txt^</license^>  >> %nuspecFile%
 echo ^<icon^>images/Lumberjack.png^</icon^> >> %nuspecFile%
 echo ^<dependencies^> >> %nuspecFile%
@@ -39,7 +39,7 @@ echo ^<files^> >> %nuspecFile%
 
 echo ^<file src="%sourceDir%\Lumberjack\**" target="lib\net8.0"/^> >> %nuspecFile%
 echo ^<file src="%sourceDir%\Lumberjack48\**" target="lib\net48"/^> >> %nuspecFile%
-echo ^<file src="%nugetDir%\Data\README.md" target="docs\" /^> >> %nuspecFile%
+echo ^<file src="%nugetDir%\Data\ReadMe.md" target="docs\" /^> >> %nuspecFile%
 echo ^<file src="%nugetDir%\Data\License.txt" target="" /^> >> %nuspecFile%
 echo ^<file src="%nugetDir%\Data\Lumberjack.png" target="images\" /^> >> %nuspecFile%
 
