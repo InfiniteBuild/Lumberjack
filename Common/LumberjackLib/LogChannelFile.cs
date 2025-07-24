@@ -190,15 +190,20 @@ namespace Lumberjack.Interface
                 DateTime creation = File.GetCreationTime(m_fileName);
                 if (creation.DayOfYear != DateTimeOffset.Now.DayOfYear)
                 {
-                    Close();
                     BackupFiles();
-                    Open();
                 }
             }
         }
 
         protected void BackupFiles()
         {
+            if (m_writer != null)
+            {
+                m_writer.Flush();
+                m_writer.Close();
+                m_writer = null;
+            }
+
             if (File.Exists(m_fileName + "." + m_backupCount))
             {
                 File.Delete(m_fileName + "." + m_backupCount);
@@ -216,6 +221,14 @@ namespace Lumberjack.Interface
             {
                 File.Move(m_fileName, m_fileName + ".1");
             }
+
+            FileStreamOptions options = new FileStreamOptions();
+            options.Share = FileShare.ReadWrite;
+            options.Mode = FileMode.Append;
+            options.Access = FileAccess.Write;
+
+            m_writer = new StreamWriter(m_fileName, options);
+            File.SetCreationTime(m_fileName, DateTimeOffset.Now.LocalDateTime);
         }
 
         public void Dispose()
