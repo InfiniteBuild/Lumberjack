@@ -22,8 +22,8 @@ echo ^<metadata^> >> %nuspecFile%
 echo ^<id^>Lumberjack^</id^> >> %nuspecFile%
 echo ^<version^>%packVer%^</version^> >> %nuspecFile%
 echo ^<description^>A CSharp library to support basic application logging^</description^> >> %nuspecFile%
-echo ^<authors^>Jared Shipley^</authors^> >> %nuspecFile%
-echo ^<repository type="git" url="https://github.com/OrgShipjd2001/Lumberjack.git" /^> >> %nuspecFile%
+echo ^<authors^>Infinite Build^</authors^> >> %nuspecFile%
+echo ^<repository type="git" url="https://github.com/InfiniteBuild/Lumberjack.git" /^> >> %nuspecFile%
 echo ^<readme^>docs\ReadMe.md^</readme^> >> %nuspecFile%
 echo ^<license type="file"^>License.txt^</license^>  >> %nuspecFile%
 echo ^<icon^>images/Lumberjack.png^</icon^> >> %nuspecFile%
