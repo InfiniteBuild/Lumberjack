@@ -12,12 +12,10 @@ Write-Host "Creating GitLab Release..."
 # Example: Define release description content (use markdown)
 $releaseDescription = "## Release $env:CI_COMMIT_TAG`n`nAutomated final release build."
 
-$releaseCommand = "release create $env:CI_COMMIT_TAG --name ""Official Release $env:CI_COMMIT_TAG"" --notes ""$releaseDescription"""
-
 Write-Host "Release Command: "
-Write-Host "$glabExe $releaseCommand"
+Write-Host "$glabExe release create $env:CI_COMMIT_TAG"
 
-& $glabExe $releaseCommand
+& $glabExe release create $env:CI_COMMIT_TAG --name "Lumberjack V$env:CI_COMMIT_TAG"
 
 Write-Host "Release creation initiated for tag $env:CI_COMMIT_TAG."
 
