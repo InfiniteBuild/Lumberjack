@@ -161,17 +161,55 @@ release_job:
   needs:
     - job: build-Release-job # Ensures the release job runs after a successful build
       artifacts: true # Makes the build job's artifacts available to this job
+  variables:
+    GIT_STRATEGY: none
+    GLAB_VERSION: 1.34.1
   rules:
     - if: $CI_COMMIT_TAG # This rule ensures the job only runs when a tag is created/pushed
   script:
-    - echo "Creating GitLab release for tag $CI_COMMIT_TAG"
-  release:
-    tag_name: '$CI_COMMIT_TAG' # Uses the Git tag as the release tag name
-    name: 'Release $CI_COMMIT_TAG' # Sets the name of the release
-    description: 'Release notes for version $CI_COMMIT_TAG' # You can load this from a file
-    assets:
-      links:
-        - name: 'Application Download'
-          # This dynamic URL links directly to the job's artifacts
-          url: '${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/file/publish/zip/Lumberjack_$CI_BUILD_VERSION.zip'
-          link_type: 'package'
+    - Write-Host "Starting release creation via manual download of GitLab CLI (glab)..."
+
+    # 1. Define download path and executable name
+    - $downloadUrl = "https://github.com/profclems/glab/releases/download/v$GLAB_VERSION/glab_$GLAB_VERSION\_Windows_x86_64.zip"
+    - $zipFile = "glab.zip"
+    - $installDir = ".\glab_install"
+    - $glabExe = "$installDir\glab.exe"
+
+    # 2. Download the GLAB binary zip file
+    - Write-Host "Downloading glab from $downloadUrl..."
+    - Invoke-WebRequest -Uri $downloadUrl -OutFile $zipFile
+
+    # 3. Unzip the executable
+    - Write-Host "Extracting glab..."
+    - Expand-Archive -Path $zipFile -DestinationPath $installDir -Force
+
+    # 4. Check if the executable is present
+    - if (-not (Test-Path $glabExe)) {
+        Write-Error "Error: glab.exe was not extracted successfully."
+        exit 1
+      }
+      
+    # 5. Use GLAB to create the release
+    # Note: GLAB automatically finds the CI_JOB_TOKEN and API URL from environment variables.
+    - Write-Host "Creating GitLab Release..."
+    
+    # Example: Define release description content (use markdown)
+    - $releaseDescription = "## Release $env:CI_COMMIT_TAG`n`nAutomated final release build."
+    
+    # Command to create the release (This replaces the 'release:' keyword)
+    # The --assets flag is used to include your build artifacts
+    # Replace the artifact path with your actual path!
+    # $CI_PROJECT_DIR is provided by GitLab
+    - $artifactPath = "$env:CI_PROJECT_DIR/$publishDir/zip/" 
+    
+    - $releaseCommand = "$glabExe release create $env:CI_COMMIT_TAG `
+        --title 'Official Release $env:CI_COMMIT_TAG' `
+        --description '$releaseDescription' `
+        --notes-file 'release_notes.md' ` # Use a file if you have complex notes
+        --asset-link 'name=Lumberjack,url=$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/file/publish/zip/Lumberjack_$CI_BUILD_VERSION.zip,type=package'"
+        
+    - Invoke-Expression $releaseCommand
+    
+    # 6. Clean up (Optional, but good practice)
+    - Remove-Item $zipFile -Force
+    - Remove-Item $installDir -Recurse -Force
