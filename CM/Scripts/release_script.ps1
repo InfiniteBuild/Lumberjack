@@ -25,6 +25,6 @@ $releaseCommand = "$glabExe release create $env:CI_COMMIT_TAG --name 'Official R
 Write-Host "Final Command String:"
 Write-Host $releaseCommand
 
-& $glabExe $glabArgs
+& $releaseCommand
 
 Write-Host "Release creation initiated for tag $env:CI_COMMIT_TAG."
