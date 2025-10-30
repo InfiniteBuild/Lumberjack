@@ -195,7 +195,7 @@ release_job:
     Write-Host "Final Command String:"
     Write-Host $releaseCommand
     
-    Invoke-Expression $releaseCommand
+    & $glabExe $glabArgs
     
     Write-Host "Release creation initiated for tag $env:CI_COMMIT_TAG."
     
