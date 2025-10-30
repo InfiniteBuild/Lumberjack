@@ -2,7 +2,6 @@ Write-Host "Starting release creation via GitLab CLI (glab)..."
 $glabExe = "$env:CI_PROJECT_DIR\buildtools\glab\glab.exe"
 
 & $glabExe config set host $env:CI_SERVER_URL --global
-$env:GITLAB_TOKEN = $env:CI_JOB_TOKEN
 
 Write-Host "Logging in..."
 & $glabExe auth login --hostname $env:CI_SERVER_HOST --token $env:ReleaseToken
