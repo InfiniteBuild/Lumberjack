@@ -37,8 +37,25 @@ before_script:
 
 generate_version:
   stage: versioning
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: on_success
   script:
     - '& $CI_PROJECT_DIR\CM\scripts\generate_version.ps1'
+    - '& $CI_PROJECT_DIR\CM\scripts\update_assembly_version.ps1'
+  artifacts:
+    paths:
+      - version.txt
+      - CM/Version/assemblyversion.props
+
+generate_release_version:
+  stage: versioning
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - set Version=$CI_COMMIT_TAG
+    - echo $Version > version.txt
     - '& $CI_PROJECT_DIR\CM\scripts\update_assembly_version.ps1'
   artifacts:
     paths:
