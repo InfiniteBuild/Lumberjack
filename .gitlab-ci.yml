@@ -169,8 +169,9 @@ release_job:
     Write-Host "Starting release creation via GitLab CLI (glab)..."
     $glabExe = "$env:CI_PROJECT_DIR\buildtools\glab\glab.exe"
     
-    # 5. Use GLAB to create the release
-    # Note: GLAB automatically finds the CI_JOB_TOKEN and API URL from environment variables.
+    & $glabExe config set host $env:CI_SERVER_URL --global
+    $env:GITLAB_TOKEN = $env:CI_JOB_TOKEN
+    
     Write-Host "Creating GitLab Release..."
     
     # Example: Define release description content (use markdown)
@@ -190,7 +191,6 @@ release_job:
             --notes '$releaseDescription' 
             --assets-links '$assetsJson'
         "@
-    $releaseCommand = $releaseCommand.Trim() -replace "`r`n", ' '
     
     Write-Host "Final Command String:"
     Write-Host $releaseCommand
