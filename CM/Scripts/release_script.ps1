@@ -12,15 +12,7 @@ Write-Host "Creating GitLab Release..."
 # Example: Define release description content (use markdown)
 $releaseDescription = "## Release $env:CI_COMMIT_TAG`n`nAutomated final release build."
 
-$assetLinkObject = @{
-	name = "Lumberjack"
-	url = "$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/file/publish/zip/Lumberjack_$env:CI_BUILD_VERSION.zip"
-	link_type = "package"
-}
-$assetsJson = @($assetLinkObject) | ConvertTo-Json -Compress -Depth 100
-Write-Host "Generated Assets JSON: $assetsJson"
-
-$releaseCommand = "$glabExe release create $env:CI_COMMIT_TAG --name 'Official Release $env:CI_COMMIT_TAG' --notes '$releaseDescription' --assets-links '$assetsJson'"
+$releaseCommand = "$glabExe release create $env:CI_COMMIT_TAG --name 'Official Release $env:CI_COMMIT_TAG' --notes '$releaseDescription'"
 
 Write-Host "Final Command String:"
 Write-Host $releaseCommand
@@ -28,3 +20,6 @@ Write-Host $releaseCommand
 & $releaseCommand
 
 Write-Host "Release creation initiated for tag $env:CI_COMMIT_TAG."
+
+Write-Host "Upload Asset - zip file"
+& $glabExe relase upload $env:CI_COMMIT_TAG "$env:publishDir\zip\Lumberjack_0.0.29.zip"
