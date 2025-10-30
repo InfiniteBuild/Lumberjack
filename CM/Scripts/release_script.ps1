@@ -11,18 +11,13 @@ $releaseDescription = "## Release $env:CI_COMMIT_TAG`n`nAutomated final release 
 
 $assetLinkObject = @{
 	name = "Lumberjack"
-	url = "$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/file/publish/zip/Lumberjack_$CI_BUILD_VERSION.zip"
+	url = "$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/file/publish/zip/Lumberjack_$env:CI_BUILD_VERSION.zip"
 	link_type = "package"
 }
 $assetsJson = @($assetLinkObject) | ConvertTo-Json -Compress -Depth 100
 Write-Host "Generated Assets JSON: $assetsJson"
 
-$releaseCommand = "
-	$glabExe release create $env:CI_COMMIT_TAG 
-		--name 'Official Release $env:CI_COMMIT_TAG' 
-		--notes '$releaseDescription' 
-		--assets-links '$assetsJson'
-	"
+$releaseCommand = "$glabExe release create $env:CI_COMMIT_TAG --name 'Official Release $env:CI_COMMIT_TAG' --notes '$releaseDescription' --assets-links '$assetsJson'"
 
 Write-Host "Final Command String:"
 Write-Host $releaseCommand
