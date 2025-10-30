@@ -167,28 +167,9 @@ release_job:
   rules:
     - if: $CI_COMMIT_TAG # This rule ensures the job only runs when a tag is created/pushed
   script:
-    - Write-Host "Starting release creation via manual download of GitLab CLI (glab)..."
-
-    # 1. Define download path and executable name
-    - $downloadUrl = "https://github.com/profclems/glab/releases/download/v$GLAB_VERSION/glab_$GLAB_VERSION\_Windows_x86_64.zip"
-    - $zipFile = "glab.zip"
-    - $installDir = ".\glab_install"
-    - $glabExe = "$installDir\glab.exe"
-
-    # 2. Download the GLAB binary zip file
-    - Write-Host "Downloading glab from $downloadUrl..."
-    - Invoke-WebRequest -Uri $downloadUrl -OutFile $zipFile
-
-    # 3. Unzip the executable
-    - Write-Host "Extracting glab..."
-    - Expand-Archive -Path $zipFile -DestinationPath $installDir -Force
-
-    # 4. Check if the executable is present
-    - if (-not (Test-Path $glabExe)) {
-        Write-Error "Error: glab.exe was not extracted successfully."
-        exit 1
-      }
-      
+    - Write-Host "Starting release creation via GitLab CLI (glab)..."
+    - $glabExe = "$env:CI_PROJECT_DIR\buildtools\glab\glab.exe"
+    
     # 5. Use GLAB to create the release
     # Note: GLAB automatically finds the CI_JOB_TOKEN and API URL from environment variables.
     - Write-Host "Creating GitLab Release..."
@@ -210,6 +191,3 @@ release_job:
         
     - Invoke-Expression $releaseCommand
     
-    # 6. Clean up (Optional, but good practice)
-    - Remove-Item $zipFile -Force
-    - Remove-Item $installDir -Recurse -Force
