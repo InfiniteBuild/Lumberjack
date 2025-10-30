@@ -89,10 +89,8 @@ nuget-dev-packages:
     - echo "pubNugetDir $pubNugetDir"
     - echo "pubRelDir $pubRelDir"
     - New-Item -ItemType Directory -Force -Path $pubNugetDir
-    - '& $CI_PROJECT_DIR\cm\Nuget\GenerateInterfacePackage.bat $CI_BUILD_VERSION-$CI_COMMIT_BRANCH $pubRelDir $pubNugetDir\interface.nuspec'
-    - '& $NugetExe pack $pubNugetDir\interface.nuspec -OutputDirectory $pubNugetDir'
-    - '& $CI_PROJECT_DIR\cm\Nuget\GenerateWebModulePackage.bat $CI_BUILD_VERSION-$CI_COMMIT_BRANCH $pubRelDir $pubNugetDir\webmodule.nuspec'
-    - '& $NugetExe pack $pubNugetDir\webmodule.nuspec -OutputDirectory $pubNugetDir'
+    - '& $CI_PROJECT_DIR\cm\Nuget\GeneratePackage.bat $CI_BUILD_VERSION-$CI_COMMIT_BRANCH $pubRelDir $pubNugetDir\lumberjack.nuspec'
+    - '& $NugetExe pack $pubNugetDir\lumberjack.nuspec -OutputDirectory $pubNugetDir'
 
 nuget-release-packages:
   stage: package
@@ -108,10 +106,8 @@ nuget-release-packages:
     - echo "pubNugetDir $pubNugetDir"
     - echo "pubRelDir $pubRelDir"
     - New-Item -ItemType Directory -Force -Path $pubNugetDir
-    - '& $CI_PROJECT_DIR\cm\Nuget\GenerateInterfacePackage.bat $CI_BUILD_VERSION $pubRelDir $pubNugetDir\interface.nuspec'
-    - '& $NugetExe pack $pubNugetDir\interface.nuspec -OutputDirectory $pubNugetDir'
-    - '& $CI_PROJECT_DIR\cm\Nuget\GenerateWebModulePackage.bat $CI_BUILD_VERSION $pubRelDir $pubNugetDir\webmodule.nuspec'
-    - '& $NugetExe pack $pubNugetDir\webmodule.nuspec -OutputDirectory $pubNugetDir'
+    - '& $CI_PROJECT_DIR\cm\Nuget\GeneratePackage.bat $CI_BUILD_VERSION $pubRelDir $pubNugetDir\lumberjack.nuspec'
+    - '& $NugetExe pack $pubNugetDir\lumberjack.nuspec -OutputDirectory $pubNugetDir'
 
 deploy-package:      # This job runs in the deploy stage.
   stage: deploy 
