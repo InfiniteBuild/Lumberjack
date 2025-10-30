@@ -5,7 +5,7 @@ $glabExe = "$env:CI_PROJECT_DIR\buildtools\glab\glab.exe"
 $env:GITLAB_TOKEN = $env:CI_JOB_TOKEN
 
 Write-Host "Logging in..."
-& $glabExe auth login --hostname $env:CI_SERVER_URL --token $env:CI_JOB_TOKEN --skip-version-check
+& $glabExe auth login --hostname $env:CI_SERVER_URL --token $env:CI_JOB_TOKEN
 
 Write-Host "Creating GitLab Release..."
 
