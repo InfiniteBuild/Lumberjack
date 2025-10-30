@@ -30,6 +30,7 @@ stages:          # List of stages for jobs, and their order of execution
   - build
   - package
   - deploy
+  - release
 
 before_script:
   - '& $CI_PROJECT_DIR\CM\scripts\setup.ps1'
@@ -70,7 +71,8 @@ configure_group_repo:
   
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
-  - if: $CI_COMMIT_TAG 
+  rules:
+    - if: $CI_COMMIT_TAG
       when: never
   script:
     - echo "Compiling the code..."
@@ -79,7 +81,8 @@ build-job:       # This job runs in the build stage, which runs first.
 
 build-Release-job:       # This job runs in the build stage, which runs first.
   stage: build
-  - if: $CI_COMMIT_TAG 
+  rules:
+    - if: $CI_COMMIT_TAG 
   script:
     - echo "Compiling the code..."
     - '& $CI_PROJECT_DIR\CM\GenerateRelease.bat'
