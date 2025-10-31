@@ -58,7 +58,7 @@ build-job:       # This job runs in the build stage, which runs first.
     - echo "Configure Nuget Source..."
     - '& $CI_PROJECT_DIR\CM\scripts\configure_nuget.ps1'
     - echo "Compiling the code..."
-    - '& $CI_PROJECT_DIR\CM\GenerateRelease.bat'
+    - '& $CI_PROJECT_DIR\CM\PublishProjects.bat'
     - echo "Compile complete."
   artifacts:
     paths:
