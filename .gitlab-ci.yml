@@ -177,4 +177,6 @@ release_job:
     - '& $CI_PROJECT_DIR\CM\scripts\release_script.ps1'
     - echo Publish Repository to GitHub
     - '& $CI_PROJECT_DIR\CM\scripts\release_publish_repo.ps1'
+    - echo Publish packages to Nuget
+    - '& $CI_PROJECT_DIR\CM\scripts\release_publish_packages.ps1'
     
