@@ -137,8 +137,7 @@ deploy-release-package:
     - job: nuget-release-packages
       artifacts: true
   rules:
-    - if: $CI_COMMIT_TAG
-    - if: '$UploadRepo && $UploadRepoToken'
+    - if: '$UploadRepo && $UploadRepoToken && $CI_COMMIT_TAG'
   script:
     - echo "Deploying to Package Store..."
     - '& $NugetExe push $pubNugetDir\*.nupkg -Source $UploadRepo -ApiKey $UploadRepoToken'
@@ -150,8 +149,7 @@ deploy-NugetOrg-package:
     - job: nuget-release-packages
       artifacts: true
   rules:
-    - if: $CI_COMMIT_TAG
-    - if: '$NugetUploadToken'
+    - if: '$CI_COMMIT_TAG && $NugetUploadToken'
   script:
     - echo "Deploying to NugetOrg..."
     - '& $NugetExe push $pubNugetDir\*.nupkg -Source nuget.org -ApiKey $NugetUploadToken'
