@@ -3,6 +3,7 @@ $glabExe = "$env:CI_PROJECT_DIR\buildtools\glab\glab.exe"
 $zipTool = "$env:CI_PROJECT_DIR\buildtools\7-zip\7z.exe"
 $version = "$env:CI_BUILD_VERSION"
 $zipOutDir = "$env:publishDir\zip"
+$projectName = "$env:CI_PROJECT_NAME"
 
 & $glabExe config set host $env:CI_SERVER_URL --global
 
@@ -12,12 +13,12 @@ Write-Host "Logging in..."
 Write-Host "Creating GitLab Release..."
 
 # Example: Define release description content (use markdown)
-$releaseDescription = "## Release $env:CI_COMMIT_TAG`n`nAutomated final release build."
+$releaseDescription = "## Release $env:CI_COMMIT_TAG`n`nAutomated release build."
 
 Write-Host "Release Command: "
 Write-Host "$glabExe release create $env:CI_COMMIT_TAG"
 
-& $glabExe release create $env:CI_COMMIT_TAG --ref $env:CI_COMMIT_SHA --name "Lumberjack V$env:CI_COMMIT_TAG"
+& $glabExe release create $env:CI_COMMIT_TAG --ref $env:CI_COMMIT_SHA --name "$projectName V$version" --notes "$releaseDescription"
 
 Write-Host "Release created for tag $env:CI_COMMIT_TAG."
 

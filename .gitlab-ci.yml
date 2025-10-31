@@ -102,9 +102,6 @@ nuget-release-packages:
     - if: $CI_COMMIT_TAG
   script:
     - echo "Creating Release Packages"
-    - $CI_BUILD_VERSION = Get-Content $CI_PROJECT_DIR\version.txt
-    - $CI_BUILD_VERSION = $CI_BUILD_VERSION.Trim()
-    - echo "CI_BUILD_VERSION $CI_BUILD_VERSION"
     - echo "pubNugetDir $pubNugetDir"
     - echo "pubRelDir $pubRelDir"
     - New-Item -ItemType Directory -Force -Path $pubNugetDir
