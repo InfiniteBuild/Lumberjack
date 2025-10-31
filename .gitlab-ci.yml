@@ -31,8 +31,8 @@ stages:          # List of stages for jobs, and their order of execution
   - deploy
   - release
 
-before_script:
-  - '& $CI_PROJECT_DIR\CM\scripts\setup.ps1'
+# before_script:
+  # - '& $CI_PROJECT_DIR\CM\scripts\setup.ps1'
 
 generate_version:
   stage: versioning
@@ -45,6 +45,8 @@ generate_version:
       - buildnumber.txt
       - CM/Version/assemblyversion.props
     expire_in: 1 day
+    reports:
+      dotenv: variables.env
 
   
 build-job:       # This job runs in the build stage, which runs first.
@@ -80,7 +82,6 @@ nuget-dev-packages:
     - when: on_success
   script:
     - echo "Creating Dev Packages"
-    - $CI_BUILD_VERSION = $CI_BUILD_VERSION.Trim()
     - echo "Static Version $STATIC_VERSION"
     - echo "CI_BUILD_VERSION $CI_BUILD_VERSION"
     - echo "CI_BUILD_NUMBER $CI_BUILD_NUMBER"
@@ -121,6 +122,8 @@ nuget-release-packages:
 deploy-dev-package:      # This job runs in the deploy stage.
   stage: deploy 
   needs:
+    - job: generate_version
+      artifacts: true 
     - job: nuget-dev-packages
       artifacts: true
   rules:
@@ -135,6 +138,8 @@ deploy-dev-package:      # This job runs in the deploy stage.
 deploy-release-package:      
   stage: deploy 
   needs:
+    - job: generate_version
+      artifacts: true 
     - job: nuget-release-packages
       artifacts: true
   rules:
@@ -147,6 +152,8 @@ deploy-release-package:
 deploy-NugetOrg-package:      
   stage: deploy 
   needs:
+    - job: generate_version
+      artifacts: true 
     - job: nuget-release-packages
       artifacts: true
   rules:
@@ -159,13 +166,13 @@ deploy-NugetOrg-package:
 deploy-droplocation:
   stage: deploy
   needs:
+    - job: generate_version
+      artifacts: true 
     - job: build-job
       artifacts: true
   rules:
     - if: '$DropLocationRoot'
   script:
-    - '$CI_BUILD_VERSION = Get-Content "$CI_PROJECT_DIR\version.txt"'
-    - '$CI_BUILD_VERSION = $CI_BUILD_VERSION.Trim()'
     - 'echo "CI_BUILD_VERSION $CI_BUILD_VERSION"'
     - '$FinalDropLocation = "{0}\{1}\{2}\{3}_{4}" -f $DropLocationRoot, $CI_PROJECT_NAME, $CI_COMMIT_BRANCH, $CI_PIPELINE_ID, $CI_BUILD_VERSION'
     - 'echo "Publish Directory $publishDir"'
@@ -175,12 +182,14 @@ deploy-droplocation:
 release_job:
   stage: release
   needs:
-    - job: build-job # Ensures the release job runs after a successful build
-      artifacts: true # Makes the build job's artifacts available to this job
+    - job: generate_version
+      artifacts: true 
+    - job: build-job
+      artifacts: true
     - job: nuget-release-packages
       artifacts: true
   rules:
-    - if: $CI_COMMIT_TAG # This rule ensures the job only runs when a tag is created/pushed
+    - if: $CI_COMMIT_TAG 
   script:
     - '& $CI_PROJECT_DIR\CM\scripts\release_script.ps1'
     

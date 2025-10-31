@@ -94,6 +94,14 @@ Write-Host "Generated/Final Version: $env:VERSION"
 $env:VERSION | Out-File -FilePath "version.txt"
 $env:BuildNumber | Out-File -FilePath "buildnumber.txt"
 
+$variables = @{
+	"STATIC_VERSION=$env:STATIC_VERSION"
+	"CI_BUILD_NUMBER=$env:BuildNumber"
+	"CI_BUILD_VERSION=$env:VERSION"
+}
+
+$Variables | Out-File -FilePath variables.env -Encoding UTF8 -Force
+
 # -------------------------------------------------------------------
 # STEP 3: Update CI/CD Variables (Only for Regular Branch Builds)
 # -------------------------------------------------------------------
