@@ -31,8 +31,8 @@ stages:          # List of stages for jobs, and their order of execution
   - deploy
   - release
 
-# before_script:
-  # - '& $CI_PROJECT_DIR\CM\scripts\setup.ps1'
+before_script:
+  - '& $CI_PROJECT_DIR\CM\scripts\setup.ps1'
 
 generate_version:
   stage: versioning
