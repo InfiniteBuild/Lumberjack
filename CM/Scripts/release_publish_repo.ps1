@@ -5,6 +5,7 @@
 # Define required environment variables
 $RepoUrl = $env:PublishRepo
 $tag = $env:CI_COMMIT_TAG
+$GithubToken = $env:PublishRepoToken # Read the GitHub access token
 
 Write-Host "--- Git Tag Push Script ---"
 
@@ -22,6 +23,18 @@ if ([string]::IsNullOrEmpty($tag)) {
     exit 1
 }
 
+# Check if the GitHub token variable is set
+if ([string]::IsNullOrEmpty($GithubToken)) {
+    Write-Error "ERROR: Environment variable 'PublishRepoToken' (GitHub Token) is missing or empty."
+    Write-Error "Cannot authenticate to GitHub."
+    exit 1
+}
+
+# Construct the authenticated URL (Token injection)
+# This format is required to pass the credentials non-interactively:
+# https://<token>@github.com/user/repo.git
+$AuthenticatedRepoUrl = $RepoUrl -replace 'https://', "https://$GithubToken@"
+
 Write-Host "Target Repository (GitHub): $($RepoUrl)"
 Write-Host "Tag to Push: $($tag)"
 
@@ -30,20 +43,18 @@ Write-Host "Tag to Push: $($tag)"
 # Note: The $RepoUrl may not be defined as a remote in the local repository.
 # The command below implicitly adds it as a temporary remote for the push operation.
 
-Write-Host "Attempting to push tag '$tag' to $RepoUrl..."
+Write-Host "Attempting to push tag '$tag' to GitHub..."
 
 # Use a try/catch block for robust error handling.
 try {
-    # Execute the git push command.
-    # --force-with-lease is safer than --force if you needed to update a tag,
-    # but for a new tag push, it simply ensures the operation happens.
-    # In this case, we rely on the exit code of the external command.
+    # Execute the git push command using the authenticated URL.
+    # The token is injected into the URL for non-interactive authentication.
     
-    git push $RepoUrl $tag 2>&1 | Write-Host
+    git push $AuthenticatedRepoUrl $tag 2>&1 | Write-Host
 
     # Check the exit code of the last external command (git).
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "SUCCESS: Tag '$tag' successfully pushed to $RepoUrl."
+        Write-Host "SUCCESS: Tag '$tag' successfully pushed to GitHub ($RepoUrl)."
     }
     else {
         # This branch catches external command failures not thrown as PowerShell exceptions.
@@ -65,8 +76,8 @@ catch {
 
 Write-Host "Verifying tag existence on remote..."
 
-# Use git ls-remote to check if the tag is listed on the remote
-$tagCheck = git ls-remote $RepoUrl "refs/tags/$tag" 2>$null
+# Use git ls-remote to check if the tag is listed on the remote, using the authenticated URL
+$tagCheck = git ls-remote $AuthenticatedRepoUrl "refs/tags/$tag" 2>$null
 
 if ([string]::IsNullOrEmpty($tagCheck)) {
     Write-Error "VERIFICATION FAILED: Tag '$tag' was not found on the remote repository $RepoUrl after push."
