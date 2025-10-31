@@ -80,9 +80,10 @@ nuget-dev-packages:
     - when: on_success
   script:
     - echo "Creating Dev Packages"
-    - $CI_BUILD_VERSION = Get-Content $CI_PROJECT_DIR\version.txt
     - $CI_BUILD_VERSION = $CI_BUILD_VERSION.Trim()
+    - echo "Static Version $STATIC_VERSION"
     - echo "CI_BUILD_VERSION $CI_BUILD_VERSION"
+    - echo "CI_BUILD_NUMBER $CI_BUILD_NUMBER"
     - echo "pubNugetDir $pubNugetDir"
     - echo "pubRelDir $pubRelDir"
     - New-Item -ItemType Directory -Force -Path $pubNugetDir
