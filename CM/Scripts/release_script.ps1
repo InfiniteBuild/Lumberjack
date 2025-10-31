@@ -19,4 +19,7 @@ Write-Host "$glabExe release create $env:CI_COMMIT_TAG"
 Write-Host "Release creation initiated for tag $env:CI_COMMIT_TAG."
 
 Write-Host "Upload Asset - zip file"
-& $glabExe release upload $env:CI_COMMIT_TAG "$env:publishDir\zip\Lumberjack_$env:CI_BUILD_VERSION.zip#Lumberjack"
+& $glabExe release upload $env:CI_COMMIT_TAG "$env:publishDir\zip\Lumberjack_$env:CI_BUILD_VERSION.zip#Lumberjack#package"
+& $glabExe release upload $env:CI_COMMIT_TAG "$env:publishDir\zip\Lumberjack48_$env:CI_BUILD_VERSION.zip#Lumberjack dotnet 4.8#package"
+
+

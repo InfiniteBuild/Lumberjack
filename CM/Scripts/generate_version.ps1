@@ -21,30 +21,30 @@ $createBuildCount = $false
 $buildNumber = 0 # Initialize buildNumber
 
 # -------------------------------------------------------------------
-# STEP 1: Determine the next build number
+# STEP 1: Determine the next build number / Final Version
 # -------------------------------------------------------------------
 
 if ($isTagRelease) {
-    # --- LOGIC FOR TAG RELEASE ---
-    # When a tag is pushed, we fetch the LATEST build number from the
-    # MAIN branch (as defined by $env:MAIN_BUILD_COUNTER_VAR).
-    # We DO NOT increment this number, nor do we update the main branch's counter.
-
-    # Ensure the main build counter variable name is available
-    if (-not $env:MAIN_BUILD_COUNTER_VAR) {
-        Write-Error "Error: MAIN_BUILD_COUNTER_VAR is not set for release build. Exiting."
+    # --- NEW LOGIC FOR TAG RELEASE ---
+    # The tag itself will be used as the final version.
+    # We validate that the tag name has a version format (e.g., v1.2.3 or 1.2.3.4)
+    
+    $tag = $env:CI_COMMIT_TAG
+    Write-Host "Validating Git tag '$tag' as the final version..."
+    
+    # Simple regex to check for version format (e.g., 1.2.3 or v1.2.3)
+    # Allows for 'v' prefix, major.minor.patch, and optional fourth component.
+    $versionPattern = '^(v|\d+\.){1}\d+\.\d+(\.\d+)?$' 
+    
+    if ($tag -match $versionPattern) {
+        # Tag is valid, use it directly as the final version
+        $env:VERSION = $tag
+        Write-Host "Validated tag as version: $env:VERSION"
+    } else {
+        # Tag is not in a valid version format
+        Write-Error "Error: Git tag '$tag' is not in a valid version format (e.g., 1.2.3, v1.2.3, 1.2.3.4). Pipeline must stop."
+        # Use 'exit 1' to fail the pipeline
         exit 1
-    }
-
-    Write-Host "Fetching last build number from MAIN branch variable '$env:MAIN_BUILD_COUNTER_VAR'..."
-    try {
-        $buildCounterResponse = Invoke-RestMethod -Uri "$apiUrl/$env:MAIN_BUILD_COUNTER_VAR" -Headers $headers -Method Get
-        # Set the release build number to the last completed build number
-        $buildNumber = [int]$buildCounterResponse.value
-        Write-Host "Using main branch build number: $buildNumber"
-    } catch {
-        Write-Host "Warning: Could not fetch main branch build number. Starting release build number at 1."
-        $buildNumber = 1
     }
 
 } else {
@@ -78,18 +78,21 @@ if ($isTagRelease) {
         Write-Host "Static Version changed! Resetting build number to 1..."
         $buildNumber = 1
     }
+    
+    # Generate the new version (for regular branch builds only)
+    $env:VERSION = "$env:STATIC_VERSION.$buildNumber"
+	$env:BuildNumber = $buildNumber
 }
 
 # -------------------------------------------------------------------
 # STEP 2: Generate version and set environment variable
 # -------------------------------------------------------------------
 
-# Generate the new version
-$env:VERSION = "$env:STATIC_VERSION.$buildNumber"
-Write-Host "Generated Version: $env:VERSION"
+Write-Host "Generated/Final Version: $env:VERSION"
 
 # Save version to file
 $env:VERSION | Out-File -FilePath "version.txt"
+$env:BuildNumber | Out-File -FilePath "buildnumber.txt"
 
 # -------------------------------------------------------------------
 # STEP 3: Update CI/CD Variables (Only for Regular Branch Builds)
@@ -130,5 +133,5 @@ if (-not $isTagRelease) {
         Invoke-RestMethod -Uri "$apiUrl/$env:LAST_VERSION_VAR" -Headers $headers -Method Put -Body $payloadLastVer -ContentType "application/json"
     }
 } else {
-    Write-Host "Skipping CI/CD variable updates because this is a release tag. Counter is not incremented."
+    Write-Host "Skipping CI/CD variable updates because this is a release tag. Version is set directly from tag."
 }

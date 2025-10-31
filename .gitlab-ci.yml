@@ -26,7 +26,6 @@ variables:
 
 stages:          # List of stages for jobs, and their order of execution
   - versioning
-  - configure
   - build
   - package
   - deploy
@@ -43,45 +42,36 @@ generate_version:
   artifacts:
     paths:
       - version.txt
+      - buildnumber.txt
       - CM/Version/assemblyversion.props
+    expire_in: 1 day
 
-configure_group_repo:
-  stage: configure
-  rules:
-    - if: '$GroupRepo && $GroupRepoUser && $GroupRepoPW'
-  script:
-    - |
-      # 1. Capture the list of NuGet sources (forcing English output for reliable string matching)
-      $SourceList = (& $NugetExe sources list -Format Detailed -ForceEnglishOutput | Out-String)
-      
-      # 2. Define the source name to check
-      $SourceName = "PackageStore"
-      
-      # 3. Check if the source name exists in the output string
-      if ($SourceList -like "*$SourceName*") {
-          Write-Host "NuGet source '$SourceName' found. Updating source."
-          # If found, call Update
-          & $NugetExe sources Update -Name $SourceName -Source $GroupRepo -Username $GroupRepoUser -Password $GroupRepoPW
-      }
-      else {
-          Write-Host "NuGet source '$SourceName' not found. Adding new source."
-          # If not found, call Add
-          & $NugetExe sources Add -Name $SourceName -Source $GroupRepo -Username $GroupRepoUser -Password $GroupRepoPW
-      }
   
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
+  needs:
+    - job: generate_version
+      artifacts: true 
   rules:
     - if: $CI_COMMIT_TAG
       when: never
     - when: on_success
   script:
+    - echo "Configure Nuget Source..."
+    - '& $CI_PROJECT_DIR\CM\scripts\configure_nuget.ps1'
     - echo "Compiling the code..."
     - '& $CI_PROJECT_DIR\CM\PublishProjects.bat'
     - echo "Compile complete."
+  artifacts:
+    paths:
+      - $publishDir/
+    expire_in: 1 day
 
 build-Release-job:       # This job runs in the build stage, which runs first.
   stage: build
+  needs:
+    - job: generate_version
+      artifacts: true
   rules:
     - if: $CI_COMMIT_TAG 
   script:
@@ -90,17 +80,19 @@ build-Release-job:       # This job runs in the build stage, which runs first.
     - echo "Compile complete."
   artifacts:
     paths:
-      - $publishDir/zip/ # Collects all files in this directory
-    expire_in: 1 week
+      - $publishDir/ # Collects all files in this directory
+    expire_in: 1 day
   
 nuget-dev-packages:
   stage: package
-  variables:
-    GIT_STRATEGY: none
+  needs:
+    - job: generate_version
+      artifacts: true
+    - job: build-job
+      artifacts: true
   rules:
     - if: $CI_COMMIT_TAG
       when: never
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
   script:
     - echo "Creating Dev Packages"
     - $CI_BUILD_VERSION = Get-Content $CI_PROJECT_DIR\version.txt
@@ -109,16 +101,22 @@ nuget-dev-packages:
     - echo "pubNugetDir $pubNugetDir"
     - echo "pubRelDir $pubRelDir"
     - New-Item -ItemType Directory -Force -Path $pubNugetDir
-    - '& $CI_PROJECT_DIR\cm\Nuget\GeneratePackage.bat $CI_BUILD_VERSION-$CI_COMMIT_BRANCH $pubRelDir $pubNugetDir\lumberjack.nuspec'
+    - '& $CI_PROJECT_DIR\cm\Nuget\GeneratePackage.bat $STATIC_VERSION-$CI_COMMIT_BRANCH.$CI_BUILD_NUMBER $pubRelDir $pubNugetDir\lumberjack.nuspec'
     - '& $NugetExe pack $pubNugetDir\lumberjack.nuspec -OutputDirectory $pubNugetDir'
+  artifacts:
+    paths:
+      - $pubNugetDir/
+    expire_in: 1 day
 
 nuget-release-packages:
   stage: package
-  variables:
-    GIT_STRATEGY: none
+  needs:
+    - job: generate_version
+      artifacts: true
+    - job: build-Release-job
+      artifacts: true
   rules:
     - if: $CI_COMMIT_TAG
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
     - echo "Creating Release Packages"
     - $CI_BUILD_VERSION = Get-Content $CI_PROJECT_DIR\version.txt
@@ -127,13 +125,20 @@ nuget-release-packages:
     - echo "pubNugetDir $pubNugetDir"
     - echo "pubRelDir $pubRelDir"
     - New-Item -ItemType Directory -Force -Path $pubNugetDir
-    - '& $CI_PROJECT_DIR\cm\Nuget\GeneratePackage.bat $CI_BUILD_VERSION $pubRelDir $pubNugetDir\lumberjack.nuspec'
+    - '& $CI_PROJECT_DIR\cm\Nuget\GeneratePackage.bat $STATIC_VERSION $pubRelDir $pubNugetDir\lumberjack.nuspec'
     - '& $NugetExe pack $pubNugetDir\lumberjack.nuspec -OutputDirectory $pubNugetDir'
+  artifacts:
+    paths:
+      - $pubNugetDir/
+    expire_in: 1 day
 
 deploy-package:      # This job runs in the deploy stage.
   stage: deploy 
-  variables:
-    GIT_STRATEGY: none
+  needs:
+    - job: nuget-dev-packages
+      artifacts: true
+    - job: nuget-release-packages
+      artifacts: true
   rules:
     - if: '$UploadRepo && $UploadRepoToken'
   script:
@@ -143,8 +148,11 @@ deploy-package:      # This job runs in the deploy stage.
 
 deploy-droplocation:
   stage: deploy
-  variables:
-    GIT_STRATEGY: none
+  needs:
+    - job: nuget-dev-packages
+      artifacts: true
+    - job: nuget-release-packages
+      artifacts: true
   rules:
     - if: '$DropLocationRoot'
   script:
@@ -161,6 +169,8 @@ release_job:
   needs:
     - job: build-Release-job # Ensures the release job runs after a successful build
       artifacts: true # Makes the build job's artifacts available to this job
+    - job: nuget-release-packages
+      artifacts: true
   variables:
     GIT_STRATEGY: none
   rules:
