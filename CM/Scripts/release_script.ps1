@@ -4,7 +4,7 @@ $glabExe = "$env:CI_PROJECT_DIR\buildtools\glab\glab.exe"
 & $glabExe config set host $env:CI_SERVER_URL --global
 
 Write-Host "Logging in..."
-& $glabExe auth login --hostname $env:CI_SERVER_HOST --token $env:ReleaseToken
+& $glabExe auth login --hostname $env:CI_SERVER_HOST --token $env:GITLAB_API_TOKEN
 
 Write-Host "Creating GitLab Release..."
 
@@ -16,9 +16,9 @@ Write-Host "$glabExe release create $env:CI_COMMIT_TAG"
 
 & $glabExe release create $env:CI_COMMIT_TAG --ref $env:CI_COMMIT_SHA --name "Lumberjack V$env:CI_COMMIT_TAG"
 
-Write-Host "Release creation initiated for tag $env:CI_COMMIT_TAG."
+Write-Host "Release created for tag $env:CI_COMMIT_TAG."
 
-Write-Host "Upload Asset - zip file"
+Write-Host "Upload zip files"
 & $glabExe release upload $env:CI_COMMIT_TAG "$env:publishDir\zip\Lumberjack_$env:CI_BUILD_VERSION.zip#Lumberjack#package"
 & $glabExe release upload $env:CI_COMMIT_TAG "$env:publishDir\zip\Lumberjack48_$env:CI_BUILD_VERSION.zip#Lumberjack dotnet 4.8#package"
 
