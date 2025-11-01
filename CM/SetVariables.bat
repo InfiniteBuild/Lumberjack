@@ -1,64 +1,68 @@
 @echo off
 
-set envfile=
+set variableFile=globalvars.env
 
-REM create envfile for pipeline
-if not %2.==. set envfile=%2
+REM create variableFile for pipeline
+if not %2.==. set variableFile=%2
 
 REM override - force setting the variables
-if not %1.==. if %1.==force. goto Force
+if not %1.==. if "%1"=="force" goto Force
+if "%force%"=="force" goto Force
 
 REM only set the variables once
 if not "%setvarScriptDir%"=="" goto Done
 
 :Force
-if not "%envfile%"=="" if exist %envfile% erase /f /q %envfile%
+if not "%variableFile%"=="" if exist %variableFile% erase /f /q %variableFile%
 set scripterror=false
 
 set setvarScriptDir=%~dp0
 echo setvarScriptDir: %setvarScriptDir%
 
-set rootDir=%setvarScriptDir%..
+pushd %setvarScriptDir%..
+set rootDir=%cd%
+popd
 echo rootDir: %rootDir%
-if not "%envfile%"=="" echo rootDir=%rootDir% >> %envfile%
+if not "%variableFile%"=="" echo rootDir=%rootDir% >> %variableFile%
 
 set binaryDir=%rootDir%\binaries
 echo binaryDir: %binaryDir%
-if not "%envfile%"=="" echo binaryDir=%binaryDir% >> %envfile%
+if not "%variableFile%"=="" echo binaryDir=%binaryDir% >> %variableFile%
 
 set buildDir=%binaryDir%\build
 echo buildDir: %buildDir%
-if not "%envfile%"=="" echo buildDir=%buildDir% >> %envfile%
+if not "%variableFile%"=="" echo buildDir=%buildDir% >> %variableFile%
 
 set buildDebugDir=%buildDir%\Debug
 echo buildDebugDir: %buildDebugDir%
-if not "%envfile%"=="" echo buildDebugDir=%buildDebugDir% >> %envfile%
+if not "%variableFile%"=="" echo buildDebugDir=%buildDebugDir% >> %variableFile%
 
 set buildReleaseDir=%buildDir%\Release
 echo buildReleaseDir: %buildReleaseDir%
-if not "%envfile%"=="" echo buildReleaseDir=%buildReleaseDir% >> %envfile%
+if not "%variableFile%"=="" echo buildReleaseDir=%buildReleaseDir% >> %variableFile%
 
 set publishDir=%binaryDir%\Publish
 echo publishDir: %publishDir%
-if not "%envfile%"=="" echo publishDir=%publishDir% >> %envfile%
+if not "%variableFile%"=="" echo publishDir=%publishDir% >> %variableFile%
 
 set pubRelDir=%publishdir%\Release
 echo pubRelDir: %pubRelDir%
-if not "%envfile%"=="" echo pubRelDir=%pubRelDir% >> %envfile%
+if not "%variableFile%"=="" echo pubRelDir=%pubRelDir% >> %variableFile%
 
 set pubDebDir=%publishdir%\Debug
 echo pubDebDir: %pubDebDir%
-if not "%envfile%"=="" echo pubDebDir=%pubDebDir% >> %envfile%
+if not "%variableFile%"=="" echo pubDebDir=%pubDebDir% >> %variableFile%
 
 set nugetDir=%binaryDir%\Nuget
 echo nugetDir: %nugetDir%
-if not "%envfile%"=="" echo nugetDir=%nugetDir% >> %envfile%
+if not "%variableFile%"=="" echo nugetDir=%nugetDir% >> %variableFile%
 
 set zipDir=%binaryDir%\zip
 echo zipDir: %zipDir%
-if not "%envfile%"=="" echo zipDir=%zipDir% >> %envfile%
+if not "%variableFile%"=="" echo zipDir=%zipDir% >> %variableFile%
 
 for /f "tokens=1,2,3* delims=<>" %%i in (%rootDir%\CM\version\assemblyversion.props) do if "%%j"=="FileVersion" set version=%%k
 echo Version: %version%
 
 :Done
+set force=

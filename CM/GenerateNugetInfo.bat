@@ -1,6 +1,6 @@
 @echo off
 
-if not %1.==. if "%1"=="/force" set force=true
+if not %1.==. if "%1"=="/force" set force=force
 
 set genNugtScriptDir=%~dp0
 call %genNugtScriptDir%\setvariables.bat %force%
