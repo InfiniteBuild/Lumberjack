@@ -20,7 +20,7 @@ variables:
   NugetExe: $CI_PROJECT_DIR\buildtools\nuget\nuget.exe
 
 stages:          # List of stages for jobs, and their order of execution
-  - versioning
+  - initialize
   - build
   - package
   - deploy
@@ -28,10 +28,9 @@ stages:          # List of stages for jobs, and their order of execution
 
 before_script:
   - '& $CI_PROJECT_DIR\CM\scripts\setup.ps1'
-  - '& $CI_PROJECT_DIR\cm\setvariables.bat'
 
 generate_version:
-  stage: versioning
+  stage: initialize
   script:
     - '& $CI_PROJECT_DIR\CM\scripts\generate_version.ps1'
     - '& $CI_PROJECT_DIR\CM\scripts\update_assembly_version.ps1'
@@ -43,13 +42,24 @@ generate_version:
     expire_in: 1 day
     reports:
       dotenv: variables.env
-
+      
+global_variables:
+  stage: initialize
+  needs:
+    - job: generate_version
+  script:
+    - '& $CI_PROJECT_DIR\cm\setvariables.bat force globalvars.env'
+  artifacts:
+    reports:
+      dotenv: globalvars.env
   
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
   needs:
     - job: generate_version
       artifacts: true 
+    - job: global_variables
+      artifacts: true
   script:
     - echo "Configure Nuget Source..."
     - '& $CI_PROJECT_DIR\CM\scripts\configure_nuget.ps1'
@@ -58,7 +68,7 @@ build-job:       # This job runs in the build stage, which runs first.
     - echo "Compile complete."
   artifacts:
     paths:
-      - $publishDir/
+      - $buildDir/
     expire_in: 1 day
  
 nuget-dev-packages:
@@ -68,13 +78,12 @@ nuget-dev-packages:
       artifacts: true
     - job: build-job
       artifacts: true
+    - job: global_variables
+      artifacts: true
   rules:
     - if: $CI_COMMIT_TAG
       when: never
     - when: on_success
-  variables:
-    BuildReleaseDir: $env:BuildReleaseDir
-    NugetDir: $env:NugetDir
   script:
     - echo "Creating Dev Packages"
     - echo "Static Version $STATIC_VERSION"
@@ -97,11 +106,10 @@ nuget-release-packages:
       artifacts: true
     - job: build-job
       artifacts: true
+    - job: global_variables
+      artifacts: true
   rules:
     - if: $CI_COMMIT_TAG
-  variables:
-    BuildReleaseDir: $env:BuildReleaseDir
-    NugetDir: $env:NugetDir
   script:
     - echo "Creating Release Packages"
     - echo "STATIC_VERSION $STATIC_VERSION"
@@ -122,12 +130,12 @@ deploy-dev-package:      # This job runs in the deploy stage.
       artifacts: true 
     - job: nuget-dev-packages
       artifacts: true
+    - job: global_variables
+      artifacts: true
   rules:
     - if: $CI_COMMIT_TAG
       when: never
     - if: '$UploadRepo && $UploadRepoToken'
-  variables:
-    NugetDir: $env:NugetDir
   script:
     - echo "Deploying to Package Store..."
     - '& $NugetExe push $nugetDir\*.nupkg -Source $UploadRepo -ApiKey $UploadRepoToken'
@@ -140,10 +148,10 @@ deploy-release-package:
       artifacts: true 
     - job: nuget-release-packages
       artifacts: true
+    - job: global_variables
+      artifacts: true
   rules:
     - if: '$UploadRepo && $UploadRepoToken && $CI_COMMIT_TAG'
-  variables:
-    NugetDir: $env:NugetDir
   script:
     - echo "Deploying to Package Store..."
     - '& $NugetExe push $nugetDir\*.nupkg -Source $UploadRepo -ApiKey $UploadRepoToken'
@@ -156,10 +164,10 @@ deploy-droplocation:
       artifacts: true 
     - job: build-job
       artifacts: true
+    - job: global_variables
+      artifacts: true
   rules:
     - if: '$DropLocationRoot'
-  variables:
-    PublishDir: $env:PublishDir
   script:
     - echo "Run Publish Script"
     - '& $CI_PROJECT_DIR\CM\PublishProjects.bat'
@@ -178,12 +186,10 @@ release_job:
       artifacts: true
     - job: nuget-release-packages
       artifacts: true
+    - job: global_variables
+      artifacts: true
   rules:
     - if: $CI_COMMIT_TAG 
-  variables:
-    PubRelDir: $env:PubRelDir
-    NugetDir: $env:NugetDir
-    ZipDir: $env:ZipDir
   script:
     - echo Create Release
     - '& $CI_PROJECT_DIR\CM\scripts\release_script.ps1'
