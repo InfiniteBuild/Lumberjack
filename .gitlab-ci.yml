@@ -69,6 +69,7 @@ build-job:       # This job runs in the build stage, which runs first.
   artifacts:
     paths:
       - $buildDir/
+      - $nugetDir/
     expire_in: 1 day
  
 nuget-dev-packages:
