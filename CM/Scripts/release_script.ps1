@@ -2,8 +2,12 @@ Write-Host "Starting release creation via GitLab CLI (glab)..."
 $glabExe = "$env:CI_PROJECT_DIR\buildtools\glab\glab.exe"
 $zipTool = "$env:CI_PROJECT_DIR\buildtools\7-zip\7z.exe"
 $version = "$env:CI_BUILD_VERSION"
+<<<<<<< HEAD
 $zipOutDir = "$env:publishDir\zip"
 $projectName = "$env:CI_PROJECT_NAME"
+=======
+$zipOutDir = "$env:zipDir"
+>>>>>>> Dev
 
 & $glabExe config set host $env:CI_SERVER_URL --global
 
