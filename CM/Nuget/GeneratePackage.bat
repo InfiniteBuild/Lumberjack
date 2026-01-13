@@ -37,7 +37,7 @@ echo ^</metadata^> >> %nuspecFile%
 
 echo ^<files^> >> %nuspecFile%
 
-echo ^<file src="%sourceDir%\Lumberjack\**" target="lib\net8.0"/^> >> %nuspecFile%
+echo ^<file src="%sourceDir%\Lumberjack\**" target="lib\net10.0"/^> >> %nuspecFile%
 echo ^<file src="%sourceDir%\Lumberjack48\**" target="lib\net48"/^> >> %nuspecFile%
 echo ^<file src="%nugetDir%\Data\ReadMe.md" target="docs\" /^> >> %nuspecFile%
 echo ^<file src="%nugetDir%\Data\License.txt" target="" /^> >> %nuspecFile%
