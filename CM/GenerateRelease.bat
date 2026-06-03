@@ -8,9 +8,11 @@ call %genRelScriptDir%\SetVariables.bat %force%
 if exist %PublishDir% rmdir /s /q %PublishDir%
 
 pushd %rootDir%
+call %rootDir%\cm\BuildProjects.bat
 call %rootDir%\cm\PublishProjects.bat
 popd
 
+call %rootdir%\cm\GenerateNugetInfo.bat
 call %rootdir%\cm\GenerateNugetPackage.bat
 
 %rootdir%\buildtools\7-zip\7z.exe a %zipdir%\Lumberjack_%version%.zip %pubRelDir%\Lumberjack\**

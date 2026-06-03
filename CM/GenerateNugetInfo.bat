@@ -10,7 +10,7 @@ pushd %rootDir%
 mkdir %nugetDir% >NUL
 mkdir %nugetDir%\Data >NUL
 copy /y %rootDir%\License %nugetDir%\Data\License.txt
-copy /y %rootDir%\ReadMe.md %nugetDir%\Data\ReadMe.md
+copy /y %rootDir%\docs\PackageReadme\Lumberjack.Interface.Readme.md %nugetDir%\Data\ReadMe.md
 copy /y %rootDir%\Resources\Lumberjack.png %nugetDir%\Data\Lumberjack.png
 
 echo.
